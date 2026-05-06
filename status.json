@@ -4,15 +4,6 @@
   "server_start": "2026-05-02",
   "incidents": [
     {
-      "id": "inc_001",
-      "title": "Brief Downtime",
-      "type": "major",
-      "body": "Host restarted the node for maintenance. Back online, no data loss.",
-      "start": "2026-04-29T14:00",
-      "end": "2026-04-29T14:20",
-      "status": "resolved"
-    },
-    {
       "id": "inc_1778103959710",
       "title": "Major Outage",
       "type": "major",
