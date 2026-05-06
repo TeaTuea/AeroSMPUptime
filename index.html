@@ -93,18 +93,27 @@
     border-radius: 10px; padding: 1rem 1.25rem;
     border-left: 3px solid #2a2d33; margin-bottom: 0.75rem;
   }
-  .incident-card.active   { border-left-color: #E24B4A; }
-  .incident-card.resolved { border-left-color: #1D9E75; }
+  .incident-card.major-card   { border-left-color: #E24B4A; }
+  .incident-card.partial-card { border-left-color: #EF9F27; }
   .inc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .inc-title { font-size: 14px; font-weight: 500; color: #d4d7db; flex: 1; }
   .inc-type {
     font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
-    font-family: 'IBM Plex Mono', monospace; text-transform: lowercase;
+    font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; flex-shrink: 0;
   }
   .inc-type.major   { background: #2c0d0d; color: #F09595; }
   .inc-type.partial { background: #2c1f08; color: #EF9F27; }
+  .inc-title { font-size: 14px; font-weight: 500; color: #d4d7db; flex: 1; }
   .inc-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; }
   .inc-body { font-size: 12px; color: #6b7280; margin-top: 8px; line-height: 1.6; }
+  .inc-actions { display: none; gap: 8px; margin-top: 10px; }
+  .inc-actions.visible { display: flex; }
+  .inc-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    padding: 3px 10px; border-radius: 6px; border: 1px solid #2a2d33;
+    background: #0e0f11; color: #6b7280; cursor: pointer; transition: all 0.15s;
+  }
+  .inc-btn:hover { color: #e8e9eb; border-color: #4b5260; }
+  .inc-btn.del:hover { color: #F09595; border-color: #E24B4A; }
 
   .no-incidents {
     background: #161719; border: 1px solid #2a2d33;
@@ -243,7 +252,7 @@
 <!-- EDITOR -->
 <div class="overlay" id="edit-overlay">
   <div class="modal">
-    <div class="modal-title">// log incident</div>
+    <div class="modal-title" id="modal-title-text">// log incident</div>
     <div class="field">
       <label>Title</label>
       <input type="text" id="inc-title" placeholder="e.g. Unplanned Downtime">
@@ -440,23 +449,30 @@ function render(data) {
     return h > 0 ? `${h}h ${r}m` : `${m}m`;
   };
 
+  // sort newest first by start date
+  recent.sort((a,b) => new Date(b.start) - new Date(a.start));
+
   list.innerHTML = recent.map(inc => {
     const start = new Date(inc.start);
     const end   = inc.status === 'resolved' ? new Date(inc.end) : null;
     const dur   = end ? ` · ${fmtDur(end-start)}` : '';
     const meta  = fmt(start) + (end ? ' → '+fmt(end)+dur : ' → ongoing');
-    return `<div class="incident-card ${inc.status}">
+    return `<div class="incident-card ${inc.type}-card" data-id="${inc.id}">
       <div class="inc-top">
-        <div class="inc-title">${inc.title}</div>
         <div class="inc-type ${inc.type}">${inc.type}</div>
+        <div class="inc-title">${inc.title}</div>
       </div>
       <div class="inc-meta">${meta}</div>
       ${inc.body ? `<div class="inc-body">${inc.body}</div>` : ''}
+      <div class="inc-actions" id="actions-${inc.id}">
+        <button class="inc-btn" onclick="editIncident('${inc.id}')">edit</button>
+        <button class="inc-btn del" onclick="deleteIncident('${inc.id}')">delete</button>
+      </div>
     </div>`;
   }).join('');
 }
 
-fetchStatus().then(render).catch(() => {
+fetchStatus().then(data => { cachedData = data; render(data); }).catch(() => {
   document.getElementById('server-name').textContent = 'Aero SMP';
 });
 
@@ -482,6 +498,7 @@ document.getElementById('pw-submit').addEventListener('click', async () => {
     document.getElementById('pw-overlay').classList.remove('active');
     document.getElementById('pw-input').value = '';
     document.getElementById('pw-error').style.display = 'none';
+    setAdminMode(true);
     openEditor();
   } else {
     document.getElementById('pw-error').style.display = 'block';
@@ -489,7 +506,13 @@ document.getElementById('pw-submit').addEventListener('click', async () => {
   }
 });
 
+let adminMode = false;
+let editingId  = null;
+let cachedData = null;
+
 function openEditor() {
+  editingId = null;
+  document.getElementById('modal-title-text').textContent = '// log incident';
   document.getElementById('inc-start-date').value = todayStr();
   document.getElementById('inc-start-time').value = nowTime();
   document.getElementById('inc-end-date').value   = todayStr();
@@ -501,6 +524,56 @@ function openEditor() {
   document.getElementById('end-fields').style.display = 'none';
   document.getElementById('save-status').style.display = 'none';
   document.getElementById('edit-overlay').classList.add('active');
+}
+
+function setAdminMode(on) {
+  adminMode = on;
+  document.querySelectorAll('.inc-actions').forEach(el => {
+    el.classList.toggle('visible', on);
+  });
+}
+
+function editIncident(id) {
+  if (!cachedData) return;
+  const inc = cachedData.incidents.find(i => i.id === id);
+  if (!inc) return;
+  editingId = id;
+  document.getElementById('modal-title-text').textContent = '// edit incident';
+  document.getElementById('inc-title').value  = inc.title;
+  document.getElementById('inc-body').value   = inc.body || '';
+  document.getElementById('inc-type').value   = inc.type;
+  document.getElementById('inc-status').value = inc.status;
+  document.getElementById('inc-start-date').value = inc.start.split('T')[0];
+  document.getElementById('inc-start-time').value = inc.start.split('T')[1] || '00:00';
+  if (inc.status === 'resolved' && inc.end) {
+    document.getElementById('inc-end-date').value = inc.end.split('T')[0];
+    document.getElementById('inc-end-time').value = inc.end.split('T')[1] || '00:00';
+    document.getElementById('end-fields').style.display = 'block';
+  } else {
+    document.getElementById('end-fields').style.display = 'none';
+  }
+  document.getElementById('save-status').style.display = 'none';
+  document.getElementById('edit-overlay').classList.add('active');
+}
+
+async function deleteIncident(id) {
+  if (!confirm('delete this incident?')) return;
+  try {
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_PATH}`;
+    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } });
+    const fileData = await getRes.json();
+    const current = JSON.parse(atob(fileData.content.replace(/\n/g,'')));
+    current.incidents = current.incidents.filter(i => i.id !== id);
+    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(current, null, 2))));
+    await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'delete incident', content: newContent, sha: fileData.sha })
+    });
+    cachedData = current;
+    render(current);
+    if (adminMode) setTimeout(() => setAdminMode(true), 100);
+  } catch(e) { alert('error: '+e.message); }
 }
 document.getElementById('edit-cancel').addEventListener('click', () => {
   document.getElementById('edit-overlay').classList.remove('active');
@@ -532,7 +605,12 @@ document.getElementById('edit-save').addEventListener('click', async () => {
     };
     if (incStatus === 'resolved') inc.end = endDate+'T'+endTime;
     current.incidents = current.incidents || [];
-    current.incidents.push(inc);
+    if (editingId) {
+      const idx = current.incidents.findIndex(i => i.id === editingId);
+      if (idx >= 0) current.incidents[idx] = { ...current.incidents[idx], ...inc, id: editingId };
+    } else {
+      current.incidents.push(inc);
+    }
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(current, null, 2))));
     await fetch(apiUrl, {
       method: 'PUT',
@@ -542,7 +620,7 @@ document.getElementById('edit-save').addEventListener('click', async () => {
     statusEl.innerHTML = '<span class="spinner"></span> saved!';
     statusEl.style.color = '#5DCAA5';
     statusEl.style.display = 'block';
-    setTimeout(() => { document.getElementById('edit-overlay').classList.remove('active'); fetchStatus().then(render); }, 1200);
+    setTimeout(() => { document.getElementById('edit-overlay').classList.remove('active'); fetchStatus().then(data => { cachedData = data; render(data); if(adminMode) setTimeout(()=>setAdminMode(true),100); }); }, 1200);
   } catch(e) {
     statusEl.innerHTML = 'error: '+e.message;
     statusEl.style.color = '#F09595';
