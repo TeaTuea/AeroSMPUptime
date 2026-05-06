@@ -309,10 +309,17 @@
 </div>
 
 <script>
-const GITHUB_USER  = 'TeaTuea';
-const GITHUB_REPO  = 'AeroSMPUptime';
-const GITHUB_TOKEN = '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';
-const JSON_PATH    = 'status.json';
+const GITHUB_USER = 'TeaTuea';
+const GITHUB_REPO = 'AeroSMPUptime';
+const JSON_PATH   = 'status.json';
+let GITHUB_TOKEN  = '';
+async function getToken() {
+  if (GITHUB_TOKEN) return GITHUB_TOKEN;
+  const res = await fetch('/api/token');
+  const data = await res.json();
+  GITHUB_TOKEN = data.token;
+  return GITHUB_TOKEN;
+}
 
 const PIN = '8008';
 async function hashPin(p) {
@@ -560,14 +567,14 @@ async function deleteIncident(id) {
   if (!confirm('delete this incident?')) return;
   try {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_PATH}`;
-    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } });
+    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${await getToken()}`, Accept: 'application/vnd.github.v3+json' } });
     const fileData = await getRes.json();
     const current = JSON.parse(atob(fileData.content.replace(/\n/g,'')));
     current.incidents = current.incidents.filter(i => i.id !== id);
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(current, null, 2))));
     await fetch(apiUrl, {
       method: 'PUT',
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      headers: { Authorization: `token ${await getToken()}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: 'delete incident', content: newContent, sha: fileData.sha })
     });
     cachedData = current;
@@ -588,7 +595,7 @@ document.getElementById('edit-save').addEventListener('click', async () => {
   statusEl.style.display = 'none';
   try {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_PATH}`;
-    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } });
+    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${await getToken()}`, Accept: 'application/vnd.github.v3+json' } });
     const fileData = await getRes.json();
     const current = JSON.parse(atob(fileData.content.replace(/\n/g,'')));
     const startDate = document.getElementById('inc-start-date').value || todayStr();
@@ -614,7 +621,7 @@ document.getElementById('edit-save').addEventListener('click', async () => {
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(current, null, 2))));
     await fetch(apiUrl, {
       method: 'PUT',
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      headers: { Authorization: `token ${await getToken()}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: `incident: ${title}`, content: newContent, sha: fileData.sha })
     });
     statusEl.innerHTML = '<span class="spinner"></span> saved!';
