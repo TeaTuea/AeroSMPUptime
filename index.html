@@ -331,7 +331,7 @@ async function fetchStatus() {
 }
 
 // returns per-day slot state for a date range
-function buildSlots(incidents, daysBack) {
+function buildSlots(incidents, daysBack, serverStart) {
   const now   = Date.now();
   const msDay = 86400000;
   const slots = [];
@@ -339,31 +339,25 @@ function buildSlots(incidents, daysBack) {
     const d = new Date(now - i * msDay);
     slots.push({ date: d.toISOString().split('T')[0], hasData: false, downMs: 0, partialMs: 0 });
   }
+  // every day on or after serverStart = green by default
+  slots.forEach(slot => {
+    if (slot.date >= serverStart) slot.hasData = true;
+  });
+  // overlay incidents
   incidents.forEach(inc => {
     const start = new Date(inc.start);
     const end   = inc.status === 'resolved' ? new Date(inc.end) : new Date();
     slots.forEach(slot => {
-      const s0 = new Date(slot.date + 'T00:00:00').getTime();
-      const s1 = new Date(slot.date + 'T23:59:59').getTime();
+      const s0  = new Date(slot.date + 'T00:00:00').getTime();
+      const s1  = new Date(slot.date + 'T23:59:59').getTime();
       const ov0 = Math.max(start.getTime(), s0);
-      const ov1 = Math.min(end.getTime(),   s1);
+      const ov1 = Math.min(end.getTime(), s1);
       if (ov1 > ov0) {
-        slot.hasData = true;
         if (inc.type === 'partial') slot.partialMs += ov1 - ov0;
         else slot.downMs += ov1 - ov0;
       }
-      // mark days before first incident as no-data, days after as up
-      if (start.getTime() <= s1) slot.hasData = true;
     });
   });
-
-  // server start date — everything from this date onward is green by default
-  // change this to whenever your server launched
-  const SERVER_START = data.server_start || '2026-05-07';
-  slots.forEach(slot => {
-    if (slot.date >= SERVER_START) slot.hasData = true;
-  });
-
   return slots;
 }
 
@@ -376,7 +370,8 @@ function render(data) {
   const msDay = 86400000;
   const days  = 30;
 
-  const slots = buildSlots(incidents, days);
+  const serverStart = data.server_start || todayStr();
+  const slots = buildSlots(incidents, days, serverStart);
 
   // uptime % — only over days with data
   const dataSlots = slots.filter(s => s.hasData);
