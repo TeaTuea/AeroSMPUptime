@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aero SMP — Status</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #0e0f11; color: #e8e9eb;
+    min-height: 100vh; padding: 2.5rem 1.5rem 4rem;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+
+  .logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.75rem; }
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #1D9E75; box-shadow: 0 0 8px #1D9E75;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  .logo-dot.down    { background: #E24B4A; box-shadow: 0 0 8px #E24B4A; }
+  .logo-dot.partial { background: #EF9F27; box-shadow: 0 0 8px #EF9F27; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    color: #a0a3a8; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .status-card {
+    background: #161719; border: 1px solid #2a2d33;
+    border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem;
+  }
+  .status-top { display: flex; align-items: center; gap: 14px; }
+  .big-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .big-dot.ok      { background: #1D9E75; box-shadow: 0 0 10px #1D9E75; }
+  .big-dot.down    { background: #E24B4A; box-shadow: 0 0 10px #E24B4A; }
+  .big-dot.partial { background: #EF9F27; box-shadow: 0 0 10px #EF9F27; }
+  .server-name { font-size: 18px; font-weight: 600; color: #f0f1f3; flex: 1; }
+  .server-ip   { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #4b5260; }
+  .badge {
+    font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 99px;
+    font-family: 'IBM Plex Mono', monospace; text-transform: lowercase;
+  }
+  .badge.ok      { background: #0a2c1e; color: #5DCAA5; }
+  .badge.down    { background: #2c0d0d; color: #F09595; }
+  .badge.partial { background: #2c1f08; color: #EF9F27; }
+
+  .divider { border: none; border-top: 1px solid #1f2227; margin: 1.25rem 0; }
+
+  .uptime-header {
+    display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
+  }
+  .uptime-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: #4b5260; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .uptime-pct { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
+  .uptime-pct.green  { color: #5DCAA5; }
+  .uptime-pct.yellow { color: #EF9F27; }
+  .uptime-pct.red    { color: #F09595; }
+  .uptime-pct.none   { color: #4b5260; }
+
+  /* THE BAR — same as claude */
+  .bar-wrap { width: 100%; }
+  .bar-row { display: flex; gap: 2px; height: 32px; }
+  .bar-row span {
+    flex: 1; border-radius: 2px;
+    background: #222428; /* gray = no data */
+    transition: opacity 0.15s; cursor: default;
+  }
+  .bar-row span:hover { opacity: 0.6; }
+  .bar-row span.up      { background: #1D9E75; }
+  .bar-row span.down    { background: #E24B4A; }
+  .bar-row span.partial { background: #EF9F27; }
+
+  .bar-meta {
+    display: flex; justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: #3a3f4a; margin-top: 5px;
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #4b5260; margin-bottom: 0.6rem; padding-left: 2px;
+  }
+
+  .incident-card {
+    background: #161719; border: 1px solid #2a2d33;
+    border-radius: 10px; padding: 1rem 1.25rem;
+    border-left: 3px solid #2a2d33; margin-bottom: 0.75rem;
+  }
+  .incident-card.active   { border-left-color: #E24B4A; }
+  .incident-card.resolved { border-left-color: #1D9E75; }
+  .inc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .inc-title { font-size: 14px; font-weight: 500; color: #d4d7db; flex: 1; }
+  .inc-type {
+    font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
+    font-family: 'IBM Plex Mono', monospace; text-transform: lowercase;
+  }
+  .inc-type.major   { background: #2c0d0d; color: #F09595; }
+  .inc-type.partial { background: #2c1f08; color: #EF9F27; }
+  .inc-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; }
+  .inc-body { font-size: 12px; color: #6b7280; margin-top: 8px; line-height: 1.6; }
+
+  .no-incidents {
+    background: #161719; border: 1px solid #2a2d33;
+    border-radius: 10px; padding: 1.25rem;
+    text-align: center; font-size: 12px;
+    color: #4b5260; font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .last-updated {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260;
+    text-align: right; margin-bottom: 1.75rem; margin-top: -1rem;
+  }
+
+  .footer-area { margin-top: 3rem; text-align: center; }
+  footer {
+    font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    color: #2d3138; cursor: pointer; user-select: none;
+    transition: color 0.2s; display: inline;
+  }
+  footer:hover { color: #4b5260; }
+  .history-link {
+    display: block; margin-top: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: #2d3138; text-decoration: none; transition: color 0.2s;
+  }
+  .history-link:hover { color: #4b5260; }
+
+  /* MODALS */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8); z-index: 100;
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #161719; border: 1px solid #2a2d33;
+    border-radius: 14px; padding: 1.75rem;
+    width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-bottom: 1.25rem;
+  }
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: #4b5260; margin-bottom: 6px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; background: #0e0f11; border: 1px solid #2a2d33;
+    border-radius: 8px; padding: 0.6rem 0.85rem;
+    color: #e8e9eb; font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; outline: none; transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #1D9E75; }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field select option { background: #161719; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
+  .field-hint { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #4b5260; margin-top: 4px; }
+  .section-divider { border: none; border-top: 1px solid #1f2227; margin: 1.25rem 0; }
+  .error-msg { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #F09595; margin-top: 6px; display: none; }
+  .btn-row { display: flex; gap: 8px; margin-top: 1.25rem; }
+  .btn {
+    flex: 1; padding: 0.65rem; border-radius: 8px; border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    font-weight: 500; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.8; }
+  .btn-cancel { background: #1f2227; color: #6b7280; }
+  .btn-save   { background: #0a2c1e; color: #5DCAA5; }
+  .btn-save.loading { opacity: 0.5; pointer-events: none; }
+  .save-status { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: center; margin-top: 0.75rem; display: none; }
+  .spinner {
+    display: inline-block; width: 10px; height: 10px;
+    border: 2px solid #5DCAA5; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+    margin-right: 6px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-row">
+    <div class="logo-dot" id="logo-dot"></div>
+    <div class="brand-name">Aero SMP — Status</div>
+  </div>
+
+  <div class="last-updated" id="ts">—</div>
+
+  <div class="status-card">
+    <div class="status-top">
+      <div class="big-dot ok" id="big-dot"></div>
+      <div class="server-name" id="server-name">—</div>
+      <div class="server-ip" id="server-ip"></div>
+      <div class="badge ok" id="badge">active</div>
+    </div>
+    <hr class="divider">
+    <div class="uptime-header">
+      <div class="uptime-label">last 30 days</div>
+      <div class="uptime-pct none" id="uptime-pct">no data</div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-row" id="uptime-bar"></div>
+      <div class="bar-meta"><span>30 days ago</span><span>today</span></div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:1.75rem;">Incidents</div>
+  <div id="incident-list"></div>
+
+  <div class="footer-area">
+    <footer id="footer">aero smp · status</footer>
+    <a class="history-link" href="alltime.html">view full history →</a>
+  </div>
+</div>
+
+<!-- PASSWORD -->
+<div class="overlay" id="pw-overlay">
+  <div class="modal">
+    <div class="modal-title">// admin</div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="pw-input" placeholder="••••" autocomplete="off">
+      <div class="error-msg" id="pw-error">wrong password</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" id="pw-cancel">cancel</button>
+      <button class="btn btn-save" id="pw-submit">enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <div class="modal-title">// log incident</div>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="inc-title" placeholder="e.g. Unplanned Downtime">
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select id="inc-type">
+        <option value="major">major — full outage</option>
+        <option value="partial">partial — degraded</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description (optional)</label>
+      <textarea id="inc-body" placeholder="What happened?"></textarea>
+    </div>
+    <hr class="section-divider">
+    <div class="field-row">
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" id="inc-start-date">
+        <div class="field-hint">defaults to today</div>
+      </div>
+      <div class="field">
+        <label>Start Time</label>
+        <input type="time" id="inc-start-time">
+      </div>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="inc-status">
+        <option value="active">active — still ongoing</option>
+        <option value="resolved">resolved — fixed</option>
+      </select>
+    </div>
+    <div id="end-fields" style="display:none;">
+      <div class="field-row">
+        <div class="field">
+          <label>End Date</label>
+          <input type="date" id="inc-end-date">
+          <div class="field-hint">defaults to today</div>
+        </div>
+        <div class="field">
+          <label>End Time</label>
+          <input type="time" id="inc-end-time">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" id="edit-cancel">cancel</button>
+      <button class="btn btn-save" id="edit-save">save & push</button>
+    </div>
+    <div class="save-status" id="save-status"></div>
+  </div>
+</div>
+
+<script>
+const GITHUB_USER  = 'TeaTuea';
+const GITHUB_REPO  = 'AeroSMPUptime';
+const GITHUB_TOKEN = 'ghp_YOURTOKEN';
+const JSON_PATH    = 'status.json';
+
+const PIN = '8008';
+async function hashPin(p) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+let PIN_HASH = '';
+hashPin(PIN).then(h => PIN_HASH = h);
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function nowTime()  { return new Date().toTimeString().slice(0,5); }
+
+function tick() {
+  const now = new Date();
+  const h = String(now.getUTCHours()).padStart(2,'0');
+  const m = String(now.getUTCMinutes()).padStart(2,'0');
+  const s = String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('ts').textContent = 'updated '+h+':'+m+':'+s+' utc';
+}
+tick(); setInterval(tick, 1000);
+
+async function fetchStatus() {
+  const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${JSON_PATH}?nc=${Date.now()}`;
+  return (await fetch(url)).json();
+}
+
+// returns per-day slot state for a date range
+function buildSlots(incidents, daysBack) {
+  const now   = Date.now();
+  const msDay = 86400000;
+  const slots = [];
+  for (let i = daysBack - 1; i >= 0; i--) {
+    const d = new Date(now - i * msDay);
+    slots.push({ date: d.toISOString().split('T')[0], hasData: false, downMs: 0, partialMs: 0 });
+  }
+  incidents.forEach(inc => {
+    const start = new Date(inc.start);
+    const end   = inc.status === 'resolved' ? new Date(inc.end) : new Date();
+    slots.forEach(slot => {
+      const s0 = new Date(slot.date + 'T00:00:00').getTime();
+      const s1 = new Date(slot.date + 'T23:59:59').getTime();
+      const ov0 = Math.max(start.getTime(), s0);
+      const ov1 = Math.min(end.getTime(),   s1);
+      if (ov1 > ov0) {
+        slot.hasData = true;
+        if (inc.type === 'partial') slot.partialMs += ov1 - ov0;
+        else slot.downMs += ov1 - ov0;
+      }
+      // mark days before first incident as no-data, days after as up
+      if (start.getTime() <= s1) slot.hasData = true;
+    });
+  });
+
+  // server start date — everything from this date onward is green by default
+  // change this to whenever your server launched
+  const SERVER_START = data.server_start || '2026-05-07';
+  slots.forEach(slot => {
+    if (slot.date >= SERVER_START) slot.hasData = true;
+  });
+
+  return slots;
+}
+
+function render(data) {
+  document.getElementById('server-name').textContent = data.server_name;
+  document.getElementById('server-ip').textContent   = data.server_ip;
+
+  const incidents = data.incidents || [];
+  const now = Date.now();
+  const msDay = 86400000;
+  const days  = 30;
+
+  const slots = buildSlots(incidents, days);
+
+  // uptime % — only over days with data
+  const dataSlots = slots.filter(s => s.hasData);
+  const pctEl = document.getElementById('uptime-pct');
+
+  if (!dataSlots.length) {
+    pctEl.textContent  = 'no data';
+    pctEl.className    = 'uptime-pct none';
+  } else {
+    const totalMs = dataSlots.length * msDay;
+    let downMs = 0;
+    incidents.forEach(inc => {
+      const start = new Date(inc.start);
+      const end   = inc.status === 'resolved' ? new Date(inc.end) : new Date();
+      const windowStart = now - days * msDay;
+      const ov0 = Math.max(start.getTime(), windowStart);
+      const ov1 = Math.min(end.getTime(), now);
+      if (ov1 > ov0) downMs += ov1 - ov0;
+    });
+    const pct = (((totalMs - downMs) / totalMs) * 100).toFixed(2);
+    pctEl.textContent = pct + '% uptime';
+    pctEl.className   = 'uptime-pct ' + (parseFloat(pct) >= 99 ? 'green' : parseFloat(pct) >= 90 ? 'yellow' : 'red');
+  }
+
+  // bar
+  const bar = document.getElementById('uptime-bar');
+  bar.innerHTML = '';
+  slots.forEach(slot => {
+    const s = document.createElement('span');
+    if (!slot.hasData)      s.className = ''; // gray
+    else if (slot.downMs)   s.className = 'down';
+    else if (slot.partialMs)s.className = 'partial';
+    else                    s.className = 'up';
+    s.title = slot.date + (!slot.hasData ? ' — no data' : slot.downMs ? ' — outage' : slot.partialMs ? ' — degraded' : ' — operational');
+    bar.appendChild(s);
+  });
+
+  // current state
+  const activeInc = incidents.find(i => i.status === 'active');
+  let state = 'ok';
+  if (activeInc) state = activeInc.type === 'partial' ? 'partial' : 'down';
+  document.getElementById('big-dot').className  = 'big-dot ' + state;
+  document.getElementById('logo-dot').className = 'logo-dot' + (state !== 'ok' ? ' '+state : '');
+  const badge = document.getElementById('badge');
+  badge.className   = 'badge ' + state;
+  badge.textContent = 'active';
+
+  // incidents last 30 days
+  const list = document.getElementById('incident-list');
+  const recent = incidents.filter(i => now - new Date(i.start).getTime() < days * msDay).slice().reverse();
+
+  if (!recent.length) {
+    list.innerHTML = '<div class="no-incidents">// no incidents in the last 30 days</div>';
+    return;
+  }
+
+  const fmt = d => {
+    const mo = d.toLocaleString('en',{month:'short'});
+    const dd = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${mo} ${dd}, ${hh}:${mm}`;
+  };
+  const fmtDur = ms => {
+    const m = Math.round(ms/60000), h = Math.floor(m/60), r = m%60;
+    return h > 0 ? `${h}h ${r}m` : `${m}m`;
+  };
+
+  list.innerHTML = recent.map(inc => {
+    const start = new Date(inc.start);
+    const end   = inc.status === 'resolved' ? new Date(inc.end) : null;
+    const dur   = end ? ` · ${fmtDur(end-start)}` : '';
+    const meta  = fmt(start) + (end ? ' → '+fmt(end)+dur : ' → ongoing');
+    return `<div class="incident-card ${inc.status}">
+      <div class="inc-top">
+        <div class="inc-title">${inc.title}</div>
+        <div class="inc-type ${inc.type}">${inc.type}</div>
+      </div>
+      <div class="inc-meta">${meta}</div>
+      ${inc.body ? `<div class="inc-body">${inc.body}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+fetchStatus().then(render).catch(() => {
+  document.getElementById('server-name').textContent = 'Aero SMP';
+});
+
+document.getElementById('inc-status').addEventListener('change', function() {
+  document.getElementById('end-fields').style.display = this.value === 'resolved' ? 'block' : 'none';
+});
+
+document.getElementById('footer').addEventListener('click', () => {
+  document.getElementById('pw-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+});
+document.getElementById('pw-cancel').addEventListener('click', () => {
+  document.getElementById('pw-overlay').classList.remove('active');
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+});
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pw-submit').click();
+});
+document.getElementById('pw-submit').addEventListener('click', async () => {
+  const h = await hashPin(document.getElementById('pw-input').value);
+  if (h === PIN_HASH) {
+    document.getElementById('pw-overlay').classList.remove('active');
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-error').style.display = 'none';
+    openEditor();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+});
+
+function openEditor() {
+  document.getElementById('inc-start-date').value = todayStr();
+  document.getElementById('inc-start-time').value = nowTime();
+  document.getElementById('inc-end-date').value   = todayStr();
+  document.getElementById('inc-end-time').value   = nowTime();
+  document.getElementById('inc-title').value  = '';
+  document.getElementById('inc-body').value   = '';
+  document.getElementById('inc-type').value   = 'major';
+  document.getElementById('inc-status').value = 'active';
+  document.getElementById('end-fields').style.display = 'none';
+  document.getElementById('save-status').style.display = 'none';
+  document.getElementById('edit-overlay').classList.add('active');
+}
+document.getElementById('edit-cancel').addEventListener('click', () => {
+  document.getElementById('edit-overlay').classList.remove('active');
+});
+
+document.getElementById('edit-save').addEventListener('click', async () => {
+  const btn = document.getElementById('edit-save');
+  const statusEl = document.getElementById('save-status');
+  const title = document.getElementById('inc-title').value.trim();
+  if (!title) { alert('add a title'); return; }
+  btn.classList.add('loading'); btn.textContent = 'pushing...';
+  statusEl.style.display = 'none';
+  try {
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_PATH}`;
+    const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } });
+    const fileData = await getRes.json();
+    const current = JSON.parse(atob(fileData.content.replace(/\n/g,'')));
+    const startDate = document.getElementById('inc-start-date').value || todayStr();
+    const startTime = document.getElementById('inc-start-time').value || '00:00';
+    const incStatus = document.getElementById('inc-status').value;
+    const endDate   = document.getElementById('inc-end-date').value   || todayStr();
+    const endTime   = document.getElementById('inc-end-time').value   || '00:00';
+    const inc = {
+      id: 'inc_'+Date.now(), title,
+      type:   document.getElementById('inc-type').value,
+      body:   document.getElementById('inc-body').value.trim(),
+      start:  startDate+'T'+startTime,
+      status: incStatus
+    };
+    if (incStatus === 'resolved') inc.end = endDate+'T'+endTime;
+    current.incidents = current.incidents || [];
+    current.incidents.push(inc);
+    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(current, null, 2))));
+    await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `incident: ${title}`, content: newContent, sha: fileData.sha })
+    });
+    statusEl.innerHTML = '<span class="spinner"></span> saved!';
+    statusEl.style.color = '#5DCAA5';
+    statusEl.style.display = 'block';
+    setTimeout(() => { document.getElementById('edit-overlay').classList.remove('active'); fetchStatus().then(render); }, 1200);
+  } catch(e) {
+    statusEl.innerHTML = 'error: '+e.message;
+    statusEl.style.color = '#F09595';
+    statusEl.style.display = 'block';
+  }
+  btn.classList.remove('loading'); btn.textContent = 'save & push';
+});
+</script>
+</body>
+</html>
