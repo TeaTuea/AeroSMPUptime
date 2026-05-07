@@ -36,7 +36,8 @@
       "type": "partial",
       "body": "Suspected DDOS attack.",
       "start": "2026-05-07T21:58",
-      "status": "active"
+      "status": "resolved",
+      "end": "2026-05-07T22:27"
     }
   ]
 }
