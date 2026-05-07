@@ -25,7 +25,7 @@
       "id": "inc_1778159660927",
       "title": "Medium Outage",
       "type": "major",
-      "body": "Server errors after update, actively working on it.",
+      "body": "Server errors after update.",
       "start": "2026-05-07T16:07",
       "status": "resolved",
       "end": "2026-05-07T16:48"
