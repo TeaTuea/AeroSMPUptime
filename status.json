@@ -1,7 +1,7 @@
 {
   "server_name": "Aero SMP",
   "server_ip": "play.aerosmp.net",
-  "server_start": "2026-05-02",
+  "server_start": "2026-05-01",
   "incidents": [
     {
       "id": "inc_1778103959710",
