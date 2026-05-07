@@ -33,7 +33,7 @@
     {
       "id": "inc_1778181855888",
       "title": "Performance Degraded",
-      "type": "partial",
+      "type": "major",
       "body": "Suspected DDOS attack.",
       "start": "2026-05-07T21:58",
       "status": "active",
