@@ -7,102 +7,70 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: #0e0f11; color: #e8e9eb;
-    min-height: 100vh; padding: 2.5rem 1.5rem 4rem;
-  }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: #0e0f11; color: #e8e9eb; min-height: 100vh; padding: 2.5rem 1.5rem 4rem; }
   .container { max-width: 640px; margin: 0 auto; }
-
-  .back {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
-    color: #4b5260; text-decoration: none; display: inline-flex;
-    align-items: center; gap: 6px; margin-bottom: 2rem;
-    transition: color 0.2s; letter-spacing: 0.06em; text-transform: uppercase;
-  }
+  .back { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 2rem; transition: color 0.2s; letter-spacing: 0.06em; text-transform: uppercase; }
   .back:hover { color: #a0a3a8; }
-
-  .page-title {
-    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500;
-    color: #a0a3a8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.75rem;
-  }
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: #a0a3a8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.75rem; }
 
   .stats-grid { display: flex; gap: 12px; margin-bottom: 2rem; flex-wrap: wrap; }
-  .stat-card {
-    flex: 1; min-width: 140px; background: #161719; border: 1px solid #2a2d33;
-    border-radius: 12px; padding: 1rem 1.25rem;
-  }
-  .stat-label {
-    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
-    color: #4b5260; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
-  }
+  .stat-card { flex: 1; min-width: 140px; background: #161719; border: 1px solid #2a2d33; border-radius: 12px; padding: 1rem 1.25rem; }
+  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #4b5260; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
   .stat-value { font-size: 20px; font-weight: 600; color: #f0f1f3; }
-  .stat-value.green  { color: #5DCAA5; }
+  .stat-value.green { color: #5DCAA5; }
   .stat-value.yellow { color: #EF9F27; }
-  .stat-value.red    { color: #F09595; }
-  .stat-value.none   { color: #4b5260; font-size: 14px; }
+  .stat-value.red { color: #F09595; }
+  .stat-value.none { color: #4b5260; font-size: 14px; }
   .stat-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #4b5260; margin-top: 4px; }
 
-  /* MONTH ROWS — like claude.ai */
-  .month-section { margin-bottom: 1.5rem; }
-  .month-header {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 8px;
-  }
-  .month-name {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
-    color: #4b5260; text-transform: uppercase; letter-spacing: 0.08em;
-  }
-  .month-pct {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
-  }
-  .month-pct.green  { color: #5DCAA5; }
-  .month-pct.yellow { color: #EF9F27; }
-  .month-pct.red    { color: #F09595; }
-  .month-pct.none   { color: #3a3f4a; }
+  /* MONTH NAV */
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .month-nav-title { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #a0a3a8; text-transform: uppercase; letter-spacing: 0.08em; }
+  .nav-btn { background: none; border: 1px solid #2a2d33; border-radius: 6px; color: #6b7280; font-size: 14px; cursor: pointer; padding: 4px 10px; transition: all 0.15s; font-family: 'IBM Plex Mono', monospace; }
+  .nav-btn:hover { color: #e8e9eb; border-color: #4b5260; }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .nav-arrows { display: flex; gap: 6px; }
 
+  /* BAR */
+  .month-card { background: #161719; border: 1px solid #2a2d33; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .month-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .month-name { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; text-transform: uppercase; letter-spacing: 0.08em; }
+  .month-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; }
+  .month-pct.green { color: #5DCAA5; }
+  .month-pct.yellow { color: #EF9F27; }
+  .month-pct.red { color: #F09595; }
+  .month-pct.none { color: #3a3f4a; }
   .bar-row { display: flex; gap: 2px; height: 28px; }
-  .bar-row span {
-    flex: 1; border-radius: 2px;
-    background: #222428; /* gray = no data */
-    cursor: default; transition: opacity 0.15s;
-  }
-  .bar-row span:hover { opacity: 0.6; }
-  .bar-row span.up      { background: #1D9E75; }
-  .bar-row span.down    { background: #E24B4A; }
+  .bar-row span { flex: 1; border-radius: 2px; background: #222428; cursor: default; transition: opacity 0.15s; position: relative; }
+  .bar-row span:hover { opacity: 0.7; }
+  .bar-row span.up { background: #1D9E75; }
+  .bar-row span.down { background: #E24B4A; }
   .bar-row span.partial { background: #EF9F27; }
 
-  .section-label {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: #4b5260; margin-bottom: 0.6rem; padding-left: 2px;
-  }
+  /* TOOLTIP */
+  .bar-tooltip { position: fixed; background: #1f2227; border: 1px solid #2a2d33; border-radius: 8px; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #e8e9eb; pointer-events: none; z-index: 999; white-space: nowrap; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .bar-tooltip .tt-date { color: #6b7280; margin-bottom: 3px; }
+  .bar-tooltip .tt-status.up { color: #5DCAA5; font-weight: 500; }
+  .bar-tooltip .tt-status.down { color: #F09595; font-weight: 500; }
+  .bar-tooltip .tt-status.partial { color: #EF9F27; font-weight: 500; }
+  .bar-tooltip .tt-status.nodata { color: #4b5260; font-weight: 500; }
+  .bar-tooltip .tt-dur { color: #6b7280; margin-top: 2px; }
 
-  .incident-card {
-    background: #161719; border: 1px solid #2a2d33;
-    border-radius: 10px; padding: 1rem 1.25rem;
-    border-left: 3px solid #2a2d33; margin-bottom: 0.75rem;
-  }
-  .incident-card.active   { border-left-color: #E24B4A; }
-  .incident-card.resolved { border-left-color: #1D9E75; }
+  .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5260; margin-bottom: 0.6rem; padding-left: 2px; }
+
+  /* INCIDENT CARDS — same as main page */
+  .incident-card { background: #161719; border: 1px solid #2a2d33; border-radius: 10px; padding: 1rem 1.25rem; border-left: 3px solid #2a2d33; margin-bottom: 0.75rem; }
+  .incident-card.major-card { border-left-color: #E24B4A; }
+  .incident-card.partial-card { border-left-color: #EF9F27; }
   .inc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .inc-title { font-size: 14px; font-weight: 500; color: #d4d7db; flex: 1; }
-  .inc-type {
-    font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
-    font-family: 'IBM Plex Mono', monospace; text-transform: lowercase;
-  }
-  .inc-type.major   { background: #2c0d0d; color: #F09595; }
+  .inc-type { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px; font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; flex-shrink: 0; }
+  .inc-type.major { background: #2c0d0d; color: #F09595; }
   .inc-type.partial { background: #2c1f08; color: #EF9F27; }
+  .inc-title { font-size: 14px; font-weight: 500; color: #d4d7db; flex: 1; }
   .inc-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; }
-  .inc-dur  { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; margin-top: 2px; }
+  .inc-dur { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4b5260; margin-top: 2px; }
   .inc-body { font-size: 12px; color: #6b7280; margin-top: 8px; line-height: 1.6; }
-
-  .no-incidents {
-    background: #161719; border: 1px solid #2a2d33;
-    border-radius: 10px; padding: 1.25rem;
-    text-align: center; font-size: 12px;
-    color: #4b5260; font-family: 'IBM Plex Mono', monospace;
-  }
+  .no-incidents { background: #161719; border: 1px solid #2a2d33; border-radius: 10px; padding: 1.25rem; text-align: center; font-size: 12px; color: #4b5260; font-family: 'IBM Plex Mono', monospace; }
 
   footer { margin-top: 3rem; text-align: center; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: #2d3138; }
 </style>
@@ -115,7 +83,7 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">All-time uptime</div>
-      <div class="stat-value none" id="alltime-pct">no data</div>
+      <div class="stat-value none" id="alltime-pct">—</div>
       <div class="stat-sub" id="alltime-since">—</div>
     </div>
     <div class="stat-card">
@@ -130,12 +98,26 @@
     </div>
   </div>
 
-  <div id="month-rows"></div>
+  <!-- MONTH NAV -->
+  <div class="month-nav">
+    <div class="month-nav-title" id="month-nav-label">—</div>
+    <div class="nav-arrows">
+      <button class="nav-btn" id="prev-btn">←</button>
+      <button class="nav-btn" id="next-btn">→</button>
+    </div>
+  </div>
+  <div id="month-card-area"></div>
 
   <div class="section-label" style="margin-top:2rem;">All Incidents</div>
   <div id="incident-list"><div class="no-incidents">// loading...</div></div>
 
   <footer>aero smp · history</footer>
+</div>
+
+<div class="bar-tooltip" id="bar-tooltip">
+  <div class="tt-date" id="tt-date"></div>
+  <div class="tt-status" id="tt-status"></div>
+  <div class="tt-dur" id="tt-dur"></div>
 </div>
 
 <script>
@@ -168,10 +150,144 @@ function pctClass(p) {
   return p >= 99 ? 'green' : p >= 90 ? 'yellow' : 'red';
 }
 
+const MIN15 = 15 * 60 * 1000;
+
+let allMonths = [];
+let curMonthIdx = 0;
+let globalIncidents = [];
+
+function buildMonthBar(monthStart, incidents, serverStart) {
+  const year  = monthStart.getFullYear();
+  const month = monthStart.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const now = new Date();
+  const msDay = 86400000;
+  let monthDownMs = 0, monthTotalMs = 0;
+  const daySlots = [];
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayDate  = new Date(year, month, d);
+    const isFuture = dayDate > now;
+    const isBeforeStart = dayDate < new Date(serverStart.getFullYear(), serverStart.getMonth(), serverStart.getDate());
+    const slot = { date: dayDate.toISOString().split('T')[0], hasData: false, downMs: 0, partialMs: 0, isFuture };
+
+    if (!isFuture && !isBeforeStart) {
+      slot.hasData = true;
+      monthTotalMs += msDay;
+    }
+
+    incidents.forEach(inc => {
+      const s  = new Date(inc.start);
+      const e  = inc.status === 'resolved' ? new Date(inc.end) : new Date();
+      const s0 = new Date(year, month, d, 0,0,0).getTime();
+      const s1 = new Date(year, month, d, 23,59,59).getTime();
+      const ov0 = Math.max(s.getTime(), s0);
+      const ov1 = Math.min(e.getTime(), s1);
+      if (ov1 > ov0) {
+        if (inc.type === 'partial') slot.partialMs += ov1 - ov0;
+        else { slot.downMs += ov1 - ov0; }
+      }
+    });
+
+    if (slot.downMs > 0 || slot.partialMs > 0) monthDownMs += slot.downMs;
+    daySlots.push(slot);
+  }
+
+  let monthPct = null;
+  if (monthTotalMs > 0) monthPct = parseFloat((((monthTotalMs - monthDownMs) / monthTotalMs) * 100).toFixed(2));
+
+  return { daySlots, monthPct, monthTotalMs };
+}
+
+function renderMonthCard(idx) {
+  const monthStart = allMonths[idx];
+  const year  = monthStart.getFullYear();
+  const month = monthStart.getMonth();
+  const monthLabel = monthStart.toLocaleString('en', {month:'long', year:'numeric'});
+  const serverStart = new Date(window._serverStart);
+
+  const { daySlots, monthPct } = buildMonthBar(monthStart, globalIncidents, serverStart);
+
+  const card = document.getElementById('month-card-area');
+  const tt     = document.getElementById('bar-tooltip');
+  const ttDate = document.getElementById('tt-date');
+  const ttStat = document.getElementById('tt-status');
+  const ttDur  = document.getElementById('tt-dur');
+
+  let barsHtml = daySlots.map((slot, i) => {
+    let cls = '';
+    if (!slot.hasData || slot.isFuture) cls = '';
+    else if (slot.downMs > MIN15)    cls = 'down';
+    else if (slot.downMs > 0)        cls = 'up';
+    else if (slot.partialMs > MIN15) cls = 'partial';
+    else if (slot.partialMs > 0)     cls = 'up';
+    else                             cls = 'up';
+    return `<span class="${cls}" data-idx="${i}"></span>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="month-card">
+      <div class="month-header">
+        <div class="month-name">${monthLabel}</div>
+        <div class="month-pct ${pctClass(monthPct)}">${monthPct !== null ? monthPct+'% uptime' : 'no data'}</div>
+      </div>
+      <div class="bar-row" id="cur-bar">${barsHtml}</div>
+    </div>
+  `;
+
+  // attach tooltips
+  document.querySelectorAll('#cur-bar span').forEach((s, i) => {
+    const slot = daySlots[i];
+    const d = new Date(slot.date + 'T12:00:00');
+    const dateLabel = d.toLocaleString('en', {month:'short', day:'numeric', year:'numeric'});
+    s.addEventListener('mouseenter', () => {
+      ttDate.textContent = dateLabel;
+      if (!slot.hasData || slot.isFuture) {
+        ttStat.textContent = 'No data'; ttStat.className = 'tt-status nodata'; ttDur.textContent = '';
+      } else if (slot.downMs > MIN15) {
+        ttStat.textContent = 'Outage'; ttStat.className = 'tt-status down'; ttDur.textContent = fmtDur(slot.downMs) + ' downtime';
+      } else if (slot.downMs > 0) {
+        ttStat.textContent = 'Operational'; ttStat.className = 'tt-status up'; ttDur.textContent = fmtDur(slot.downMs) + ' minor downtime';
+      } else if (slot.partialMs > MIN15) {
+        ttStat.textContent = 'Degraded'; ttStat.className = 'tt-status partial'; ttDur.textContent = fmtDur(slot.partialMs) + ' degraded';
+      } else {
+        ttStat.textContent = 'Operational'; ttStat.className = 'tt-status up'; ttDur.textContent = 'No incidents';
+      }
+      tt.style.display = 'block';
+    });
+    s.addEventListener('mousemove', e => { tt.style.left = (e.clientX+12)+'px'; tt.style.top = (e.clientY-40)+'px'; });
+    s.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
+  });
+
+  // nav label + buttons
+  document.getElementById('month-nav-label').textContent = monthLabel;
+  document.getElementById('prev-btn').disabled = (idx >= allMonths.length - 1);
+  document.getElementById('next-btn').disabled = (idx <= 0);
+}
+
+document.getElementById('prev-btn').addEventListener('click', () => {
+  if (curMonthIdx < allMonths.length - 1) { curMonthIdx++; renderMonthCard(curMonthIdx); }
+});
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (curMonthIdx > 0) { curMonthIdx--; renderMonthCard(curMonthIdx); }
+});
+
 fetchStatus().then(data => {
   const incidents = data.incidents || [];
-  const now = Date.now();
+  globalIncidents = incidents;
+  const serverStart = new Date(data.server_start || new Date().toISOString().split('T')[0]);
+  window._serverStart = data.server_start || new Date().toISOString().split('T')[0];
+  const now = new Date();
 
+  // build months list newest first
+  let cur = new Date(serverStart.getFullYear(), serverStart.getMonth(), 1);
+  allMonths = [];
+  while (cur <= now) { allMonths.push(new Date(cur)); cur.setMonth(cur.getMonth()+1); }
+  allMonths.reverse();
+  curMonthIdx = 0;
+  renderMonthCard(0);
+
+  // stats
   if (!incidents.length) {
     document.getElementById('alltime-pct').textContent = 'no data';
     document.getElementById('alltime-since').textContent = 'no incidents logged yet';
@@ -180,15 +296,10 @@ fetchStatus().then(data => {
     document.getElementById('longest').textContent = '—';
     document.getElementById('longest-name').textContent = 'no outages';
     document.getElementById('incident-list').innerHTML = '<div class="no-incidents">// no incidents logged</div>';
-    document.getElementById('month-rows').innerHTML = '<div class="no-incidents" style="margin-bottom:1.5rem;">// no data yet — log an incident to start tracking</div>';
     return;
   }
 
-  const sorted = incidents.slice().sort((a,b) => new Date(a.start)-new Date(b.start));
-  const firstDate = new Date(data.server_start || sorted[0].start);
-  const totalWindowMs = now - firstDate.getTime();
-
-  // all-time downtime
+  const totalWindowMs = now - serverStart;
   let totalDownMs = 0, longestMs = 0, longestInc = null;
   incidents.forEach(inc => {
     const s = new Date(inc.start);
@@ -202,113 +313,22 @@ fetchStatus().then(data => {
   const pEl = document.getElementById('alltime-pct');
   pEl.textContent = allPct + '%';
   pEl.className   = 'stat-value ' + pctClass(parseFloat(allPct));
-  document.getElementById('alltime-since').textContent = 'since ' + fmtDate(firstDate);
+  document.getElementById('alltime-since').textContent = 'since ' + fmtDate(serverStart);
   document.getElementById('total-count').textContent   = incidents.length;
   document.getElementById('total-down').textContent    = fmtDur(totalDownMs) + ' total downtime';
   document.getElementById('longest').textContent       = fmtDur(longestMs);
   document.getElementById('longest-name').textContent  = longestInc ? longestInc.title : '—';
 
-  // build month rows going back from today to first incident month
-  const msDay = 86400000;
-  const monthRows = document.getElementById('month-rows');
-  monthRows.innerHTML = '';
-
-  // collect all months from first incident to now
-  const months = [];
-  let cur = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
-  const nowDate = new Date();
-  while (cur <= nowDate) {
-    months.push(new Date(cur));
-    cur.setMonth(cur.getMonth() + 1);
-  }
-  months.reverse(); // newest first
-
-  months.forEach(monthStart => {
-    const year  = monthStart.getFullYear();
-    const month = monthStart.getMonth();
-    const daysInMonth = new Date(year, month+1, 0).getDate();
-    const monthLabel = monthStart.toLocaleString('en', {month:'long', year:'numeric'});
-
-    // build day slots for this month
-    let monthDownMs = 0, monthTotalMs = 0, hasAnyData = false;
-    const daySlots = [];
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dayDate = new Date(year, month, d);
-      // skip future days
-      const isFuture = dayDate > nowDate;
-      // skip days before first incident
-      const serverStart = new Date(data.server_start || sorted[0].start);
-      const isBeforeFirst = dayDate < new Date(serverStart.getFullYear(), serverStart.getMonth(), serverStart.getDate());
-
-      const slot = { date: dayDate.toISOString().split('T')[0], hasData: false, downMs: 0, partialMs: 0, isFuture };
-
-      if (!isFuture && !isBeforeFirst) {
-        slot.hasData = true;
-        hasAnyData = true;
-        monthTotalMs += msDay;
-      }
-
-      incidents.forEach(inc => {
-        const s = new Date(inc.start);
-        const e = inc.status === 'resolved' ? new Date(inc.end) : new Date();
-        const s0 = new Date(year, month, d, 0,0,0).getTime();
-        const s1 = new Date(year, month, d, 23,59,59).getTime();
-        const ov0 = Math.max(s.getTime(), s0);
-        const ov1 = Math.min(e.getTime(), s1);
-        if (ov1 > ov0) {
-          slot.hasData = true;
-          if (inc.type === 'partial') slot.partialMs += ov1 - ov0;
-          else { slot.downMs += ov1 - ov0; monthDownMs += ov1 - ov0; }
-        }
-      });
-
-      daySlots.push(slot);
-    }
-
-    // month uptime %
-    let monthPct = null;
-    if (monthTotalMs > 0) {
-      monthPct = parseFloat((((monthTotalMs - monthDownMs) / monthTotalMs) * 100).toFixed(2));
-    }
-
-    const section = document.createElement('div');
-    section.className = 'month-section';
-
-    const header = document.createElement('div');
-    header.className = 'month-header';
-    header.innerHTML = `
-      <div class="month-name">${monthLabel}</div>
-      <div class="month-pct ${pctClass(monthPct)}">${monthPct !== null ? monthPct+'% uptime' : 'no data'}</div>
-    `;
-
-    const barRow = document.createElement('div');
-    barRow.className = 'bar-row';
-    daySlots.forEach(slot => {
-      const s = document.createElement('span');
-      if (slot.isFuture || !slot.hasData) s.className = '';
-      else if (slot.downMs)    s.className = 'down';
-      else if (slot.partialMs) s.className = 'partial';
-      else                     s.className = 'up';
-      s.title = slot.date + (slot.isFuture ? ' — future' : !slot.hasData ? ' — no data' : slot.downMs ? ' — outage' : slot.partialMs ? ' — degraded' : ' — operational');
-      barRow.appendChild(s);
-    });
-
-    section.appendChild(header);
-    section.appendChild(barRow);
-    monthRows.appendChild(section);
-  });
-
-  // all incidents list
+  // incidents list
   const list = document.getElementById('incident-list');
-  list.innerHTML = incidents.slice().reverse().map(inc => {
+  list.innerHTML = incidents.slice().sort((a,b) => new Date(b.start)-new Date(a.start)).map(inc => {
     const start = new Date(inc.start);
     const end   = inc.status === 'resolved' ? new Date(inc.end) : null;
     const dur   = end ? fmtDur(end-start) : 'ongoing';
-    return `<div class="incident-card ${inc.status}">
+    return `<div class="incident-card ${inc.type}-card">
       <div class="inc-top">
-        <div class="inc-title">${inc.title}</div>
         <div class="inc-type ${inc.type}">${inc.type}</div>
+        <div class="inc-title">${inc.title}</div>
       </div>
       <div class="inc-meta">${fmtDate(start)}${end ? ' → '+fmtDate(end) : ' → ongoing'}</div>
       <div class="inc-dur">${dur}</div>

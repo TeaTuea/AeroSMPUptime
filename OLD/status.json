@@ -1,0 +1,25 @@
+{
+  "server_name": "Aero SMP",
+  "server_ip": "play.aerosmp.net",
+  "server_start": "2026-05-02",
+  "incidents": [
+    {
+      "id": "inc_1778103959710",
+      "title": "Major Outage",
+      "type": "major",
+      "body": "Disk Write/Read error.",
+      "start": "2026-05-06T22:14",
+      "status": "resolved",
+      "end": "2026-05-07T00:05"
+    },
+    {
+      "id": "inc_1778106599400",
+      "title": "Performance Degraded",
+      "type": "partial",
+      "body": "Server Lag - Slight rollback",
+      "start": "2026-05-05T21:41",
+      "status": "resolved",
+      "end": "2026-05-05T22:57"
+    }
+  ]
+}

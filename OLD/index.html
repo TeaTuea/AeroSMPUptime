@@ -128,30 +128,6 @@
   }
 
   .footer-area { margin-top: 3rem; text-align: center; }
-
-  .bar-wrap { position: relative; }
-  .bar-tooltip {
-    position: fixed;
-    background: #1f2227;
-    border: 1px solid #2a2d33;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: #e8e9eb;
-    pointer-events: none;
-    z-index: 999;
-    white-space: nowrap;
-    display: none;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  }
-  .bar-tooltip .tt-date { color: #6b7280; margin-bottom: 3px; }
-  .bar-tooltip .tt-status { font-weight: 500; }
-  .bar-tooltip .tt-status.up { color: #5DCAA5; }
-  .bar-tooltip .tt-status.down { color: #F09595; }
-  .bar-tooltip .tt-status.partial { color: #EF9F27; }
-  .bar-tooltip .tt-status.nodata { color: #4b5260; }
-  .bar-tooltip .tt-dur { color: #6b7280; margin-top: 2px; }
   footer {
     font-size: 11px; font-family: 'IBM Plex Mono', monospace;
     color: #2d3138; cursor: pointer; user-select: none;
@@ -256,7 +232,6 @@
     <a class="history-link" href="alltime.html">view full history →</a>
   </div>
 </div>
-<div class="bar-tooltip" id="bar-tooltip"><div class="tt-date" id="tt-date"></div><div class="tt-status" id="tt-status"></div><div class="tt-dur" id="tt-dur"></div></div>
 
 <!-- PASSWORD -->
 <div class="overlay" id="pw-overlay">
@@ -440,54 +415,13 @@ function render(data) {
   // bar
   const bar = document.getElementById('uptime-bar');
   bar.innerHTML = '';
-  const tt     = document.getElementById('bar-tooltip');
-  const ttDate = document.getElementById('tt-date');
-  const ttStat = document.getElementById('tt-status');
-  const ttDur  = document.getElementById('tt-dur');
-
   slots.forEach(slot => {
     const s = document.createElement('span');
-    const MIN15 = 15 * 60 * 1000;
-    if (!slot.hasData)                  s.className = '';
-    else if (slot.downMs > MIN15)       s.className = 'down';
-    else if (slot.downMs > 0)           s.className = 'up';
-    else if (slot.partialMs > MIN15)    s.className = 'partial';
-    else if (slot.partialMs > 0)        s.className = 'up';
-    else                                s.className = 'up';
-
-    // format date nicely
-    const d = new Date(slot.date + 'T12:00:00');
-    const dateLabel = d.toLocaleString('en', {month:'short', day:'numeric', year:'numeric'});
-
-    s.addEventListener('mouseenter', e => {
-      ttDate.textContent = dateLabel;
-      if (!slot.hasData) {
-        ttStat.textContent = 'No data';
-        ttStat.className = 'tt-status nodata';
-        ttDur.textContent = '';
-      } else if (slot.downMs) {
-        ttStat.textContent = 'Outage';
-        ttStat.className = 'tt-status down';
-        ttDur.textContent = fmtDur(slot.downMs) + ' downtime';
-      } else if (slot.partialMs) {
-        ttStat.textContent = 'Degraded';
-        ttStat.className = 'tt-status partial';
-        ttDur.textContent = fmtDur(slot.partialMs) + ' degraded';
-      } else {
-        ttStat.textContent = 'Operational';
-        ttStat.className = 'tt-status up';
-        ttDur.textContent = 'No incidents';
-      }
-      tt.style.display = 'block';
-    });
-    s.addEventListener('mousemove', e => {
-      tt.style.left = (e.clientX + 12) + 'px';
-      tt.style.top  = (e.clientY - 40) + 'px';
-    });
-    s.addEventListener('mouseleave', () => {
-      tt.style.display = 'none';
-    });
-
+    if (!slot.hasData)      s.className = ''; // gray
+    else if (slot.downMs)   s.className = 'down';
+    else if (slot.partialMs)s.className = 'partial';
+    else                    s.className = 'up';
+    s.title = slot.date + (!slot.hasData ? ' — no data' : slot.downMs ? ' — outage' : slot.partialMs ? ' — degraded' : ' — operational');
     bar.appendChild(s);
   });
 
