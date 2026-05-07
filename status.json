@@ -32,9 +32,9 @@
     },
     {
       "id": "inc_1778181855888",
-      "title": "Performance Degraded",
-      "type": "partial",
-      "body": "Suspected DDOS attack.",
+      "title": "Major Outage",
+      "type": "major",
+      "body": "DDOS attack.",
       "start": "2026-05-07T21:58",
       "status": "resolved",
       "end": "2026-05-07T23:02"
