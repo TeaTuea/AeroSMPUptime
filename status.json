@@ -43,10 +43,10 @@
       "id": "inc_1778426402104",
       "title": "Major Outage",
       "type": "major",
-      "body": "The bee crash.",
+      "body": "Data corruption.",
       "start": "2026-05-10T18:18",
-      "status": "active",
-      "end": "2026-05-10T19:17"
+      "status": "resolved",
+      "end": "2026-05-10T20:40"
     }
   ]
 }
