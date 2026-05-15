@@ -47,6 +47,14 @@
       "start": "2026-05-10T18:18",
       "status": "resolved",
       "end": "2026-05-10T20:40"
+    },
+    {
+      "id": "inc_1778848918740",
+      "title": "Maintenance",
+      "type": "major",
+      "body": "Upgrading storage.",
+      "start": "2026-05-15T02:39",
+      "status": "active"
     }
   ]
 }
